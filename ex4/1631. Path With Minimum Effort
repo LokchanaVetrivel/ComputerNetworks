@@ -1,0 +1,63 @@
+import java.util.Arrays;
+import java.util.PriorityQueue;
+import java.util.Comparator;
+class Solution {
+    public int minimumEffortPath(int[][] heights) {
+        int rows = heights.length;
+        int cols = heights[0].length;
+        // Distance matrix to store the minimum effort required to reach each cell
+        int[][] effortMatrix = new int[rows][cols];
+        for (int[] row : effortMatrix) {
+            Arrays.fill(row, Integer.MAX_VALUE);
+        }
+        
+        // Start from top-left cell (0, 0) with 0 effort
+        effortMatrix[0][0] = 0;
+        
+        // Priority Queue stores arrays of size 3: {currentEffort, row, col}
+        // It acts as a min-heap, always popping the path with the smallest effort first
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.add(new int[]{0, 0, 0});
+        
+        // Directions array to move up, down, left, and right
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int currentEffort = current[0];
+            int row = current[1];
+            int col = current[2];
+            
+            // If we have reached the bottom-right destination, return the effort
+            if (row == rows - 1 && col == cols - 1) {
+                return currentEffort;
+            }
+            
+            // If the popped effort is greater than the recorded one, skip it
+            if (currentEffort > effortMatrix[row][col]) {
+                continue;
+            }
+            
+            // Explore all 4 neighboring cells
+            for (int[] dir : directions) {
+                int newRow = row + dir[0];
+                int newCol = col + dir[1];
+                
+                // Check if the neighbor is inside the grid boundaries
+                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+                    // Calculate effort as the max of current path's effort and the new step's height jump
+                    int heightDifference = Math.abs(heights[row][col] - heights[newRow][newCol]);
+                    int nextEffort = Math.max(currentEffort, heightDifference);
+                    
+                    // If this new path offers a smaller max effort to the neighbor, update and push
+                    if (nextEffort < effortMatrix[newRow][newCol]) {
+                        effortMatrix[newRow][newCol] = nextEffort;
+                        pq.add(new int[]{nextEffort, newRow, newCol});
+                    }
+                }
+            }
+        }
+        
+        return 0;
+    }
+}
