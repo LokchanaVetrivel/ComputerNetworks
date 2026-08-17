@@ -1,0 +1,46 @@
+import java.util.*;
+
+class Solution {
+    public int minReorder(int n, int[][] connections) {
+        // Create an adjacency list to store neighbors as {destinationCity, needsFlip}
+        List<List<int[]>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            adj.add(new ArrayList<>());
+        }
+        
+        for (int[] conn : connections) {
+            int from = conn[0];
+            int to = conn[1];
+            // 1 means original road points away from capital (needs flip if traversed this way)
+            adj.get(from).add(new int[]{to, 1}); 
+            // 0 means original road points toward capital (no flip needed if traversed this way)
+            adj.get(to).add(new int[]{from, 0}); 
+        }
+        
+        // BFS Queue and visited array starting from city 0
+        Queue<Integer> queue = new LinkedList<>();
+        boolean[] visited = new boolean[n];
+        
+        queue.add(0);
+        visited[0] = true;
+        
+        int changeCount = 0;
+        
+        while (!queue.isEmpty()) {
+            int currentCity = queue.poll();
+            
+            for (int[] neighbor : adj.get(currentCity)) {
+                int nextCity = neighbor[0];
+                int needsFlip = neighbor[1];
+                
+                if (!visited[nextCity]) {
+                    visited[nextCity] = true;
+                    changeCount += needsFlip; // Adds 1 if the road needs to be reversed
+                    queue.add(nextCity);
+                }
+            }
+        }
+        
+        return changeCount;
+    }
+}
