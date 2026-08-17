@@ -1,0 +1,60 @@
+import java.util.*;
+
+class Solution {
+    public int networkDelayTime(int[][] times, int n, int k) {
+        // Step 1: Build the network graph as an adjacency list
+        // Each node maps to a list of pairs: {neighborNode, travelTime}
+        Map<Integer, List<int[]>> graph = new HashMap<>();
+        for (int[] time : times) {
+            graph.putIfAbsent(time[0], new ArrayList<>());
+            graph.get(time[0]).add(new int[]{time[1], time[2]});
+        }
+        
+        // Step 2: Priority Queue stores pairs: {totalTimeFromStart, currentNode}
+        // Min-heap keeps the path with the smallest elapsed time at the top
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.add(new int[]{0, k});
+        
+        // Step 3: Keep track of the earliest time a signal reaches each node
+        Map<Integer, Integer> signalReceivedAt = new HashMap<>();
+        
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int time = current[0];
+            int node = current[1];
+            
+            // If we've already found a quicker way to this node, skip it
+            if (signalReceivedAt.containsKey(node)) {
+                continue;
+            }
+            
+            // Record the final minimum time for this node
+            signalReceivedAt.put(node, time);
+            
+            // Send the signal forward to all connected neighbors
+            if (graph.containsKey(node)) {
+                for (int[] neighbor : graph.get(node)) {
+                    int nextNode = neighbor[0];
+                    int travelTime = neighbor[1];
+                    
+                    if (!signalReceivedAt.containsKey(nextNode)) {
+                        pq.add(new int[]{time + travelTime, nextNode});
+                    }
+                }
+            }
+        }
+        
+        // Step 4: Check if all 'n' nodes received the signal
+        if (signalReceivedAt.size() != n) {
+            return -1;
+        }
+        
+        // Find the absolute maximum time it took for the last node to get reached
+        int maxDelay = 0;
+        for (int time : signalReceivedAt.values()) {
+            maxDelay = Math.max(maxDelay, time);
+        }
+        
+        return maxDelay;
+    }
+}
